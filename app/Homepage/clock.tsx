@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Dimensions } from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/config/firebase";
 
 const timezones = [
@@ -20,18 +20,22 @@ const timezones = [
 export default function Clock() {
   const [time, setTime] = useState(new Date());
   const [timezone, setTimezone] = useState("Asia/Manila");
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, "settings", "timezone"), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setTimezone(data.timezone || "Asia/Manila");
+    const fetchTimezone = async () => {
+      try {
+        const docRef = doc(db, "settings", "timezone");
+        const snapshot = await getDoc(docRef);
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          setTimezone(data.timezone || "Asia/Manila");
+        }
+      } catch (error) {
+        console.error("Error fetching timezone:", error);
       }
-      setLoading(false);
-    });
+    };
 
-    return () => unsubscribe();
+    fetchTimezone();
   }, []);
 
   useEffect(() => {
@@ -97,14 +101,6 @@ export default function Clock() {
     return { month, day };
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading...</Text>
-      </View>
-    );
-  }
-
   const { hour, minute, second, ampm } = getTimeParts();
   const { month, day } = getDateParts();
 
@@ -144,8 +140,6 @@ export default function Clock() {
   );
 }
 
-const screenWidth = Dimensions.get("window").width;
-
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
@@ -182,7 +176,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
-    minWidth: screenWidth < 350 ? 60 : 80,
+    minWidth: 80,
     textAlign: "center",
     marginHorizontal: 5,
   },
@@ -223,16 +217,5 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     textAlign: "center",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f0f0f0",
-  },
-  loadingText: {
-    fontSize: 18,
-    color: "#003d3d",
-    fontWeight: "bold",
   },
 });

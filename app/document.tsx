@@ -71,6 +71,7 @@ export default function Document() {
           setContent(data.content || '');
           setCreatedAt(data.createdAt || null);
           setCreatedTimezone(data.createdTimezone || null);
+          setShowSeal(data.showSeal || false); 
           setDocExists(true);
         } else {
           await setDoc(doc(db, 'documents', documentId), {
@@ -79,6 +80,7 @@ export default function Document() {
             createdAt: null,
             updatedAt: null,
             createdTimezone: null,
+            showSeal: false, 
           });
           setDocExists(true);
         }
@@ -139,6 +141,7 @@ export default function Document() {
         name: title || 'Untitled',
         content,
         updatedAt: formattedUpdated,
+        showSeal: true, 
       });
 
       setShowSeal(true);
@@ -236,7 +239,7 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: 'rgba(0,128,128,0.8)', 
+    backgroundColor: 'rgba(0,128,128,0.8)',
     justifyContent: 'center',
     alignItems: 'center',
     transform: [{ rotate: '-30deg' }],
